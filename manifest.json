@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Quick Reminder Capture",
+  "description": "Save reminder dates from selected text and review them later in a popup.",
+  "version": "0.1.0",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab",
+    "identity"
+  ],
+  "host_permissions": [
+    "http://localhost:19092/*"
+  ],
+  "oauth2": {
+    "client_id": "YOUR_ACTUAL_CLIENT_ID_HERE.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.events"
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Reminders",
+    "default_popup": "popup.html"
+  }
+}

@@ -1,0 +1,71 @@
+<!doctyp  <body>
+    <header>
+      <h1>Reminder List</h1>
+      <p>Select text on a page, right-click, and choose "Add to Reminders".</p>
+      <div id="bridge-status" class="bridge-status hidden">
+        <span class="status-indicator"></span>
+        <span class="status-text"></span>
+      </div>
+    </header>l>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reminders</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Reminder List</h1>
+      <p>Select text on a page, right-click, and choose “Add to Reminders”.</p>
+    </header>
+
+    <section class="add-form">
+      <label for="manual-text">Add manually</label>
+      <div class="row">
+        <div class="stack">
+          <input
+            id="manual-text"
+            type="text"
+            placeholder="e.g. PTA meeting Feb 3, 6pm"
+            autocomplete="off"
+          />
+          <div class="datetime-row">
+            <input id="manual-date" type="date" aria-label="Date" />
+            <input id="manual-time" type="time" aria-label="Time" />
+          </div>
+        </div>
+        <button id="add-btn" type="button">Save</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="actions">
+        <span id="count"></span>
+        <button id="clear-btn" type="button" class="ghost">Clear all</button>
+      </div>
+      <ul id="reminder-list"></ul>
+    </section>
+
+    <template id="reminder-template">
+      <li class="reminder">
+        <div class="text"></div>
+        <div class="meta"></div>
+        <div class="due-edit">
+          <input type="datetime-local" class="due-input" />
+          <button class="save-due-btn" type="button">Set date/time</button>
+        </div>
+        <div class="actions">
+          <button class="gcal-btn" type="button">Send to Google Calendar</button>
+          <button class="apple-btn" type="button">Send to Apple Reminders</button>
+        </div>
+        <div class="actions secondary">
+          <button class="delete-btn" type="button" aria-label="Remove">Remove</button>
+          <a class="source" target="_blank" rel="noopener noreferrer">source</a>
+        </div>
+      </li>
+    </template>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
