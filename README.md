@@ -1,4 +1,4 @@
-# 📝 Craete Reminders
+# 📝 Create Reminders
 
 > A Chrome extension to capture reminders from any webpage and sync them to Google Calendar or Apple Reminders.
 
