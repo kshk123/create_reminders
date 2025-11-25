@@ -37,7 +37,7 @@ The setup guide includes:
 
 1. **Clone or download this repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/quick-reminder-capture.git
+   git clone https://github.com/kshk123/quick-reminder-capture.git
    cd quick-reminder-capture
    ```
 
@@ -125,40 +125,8 @@ See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) for
 - Send reminders to Apple Reminders app
 - Visual indicator shows bridge connection status
 
-## 📸 Screenshots
-
-<!-- TODO: Add screenshots -->
-- Popup interface
-- Context menu capture
-- Google Calendar integration
-- Apple Reminders sync
-- Toast notifications
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to:
-
-- 🐛 Report bugs
-- 💡 Suggest new features
-- 🔧 Submit pull requests
-- 📖 Improve documentation
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
 
-- Chrome Extension documentation
-- Google Calendar API
-- Apple Reminders AppleScript reference
-
-## 📧 Support
-
-Having issues? Check out:
-- [SETUP.md](SETUP.md) - Detailed setup instructions
-- [Issues](https://github.com/YOUR_USERNAME/quick-reminder-capture/issues) - Report bugs or request features
-
----
-
-**Made with ❤️ for productivity enthusiasts**
