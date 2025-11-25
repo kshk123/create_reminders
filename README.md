@@ -37,8 +37,8 @@ The setup guide includes:
 
 1. **Clone or download this repository**
    ```bash
-   git clone https://github.com/kshk123/quick-reminder-capture.git
-   cd quick-reminder-capture
+   git clone https://github.com/kshk123/create_reminders.git
+   cd create_reminders
    ```
 
 2. **Load the extension in Chrome**
