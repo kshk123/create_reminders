@@ -7,7 +7,7 @@
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Reminders-black?logo=apple)](https://www.apple.com/reminders/)
 [![Google Calendar](https://img.shields.io/badge/Google-Calendar-green?logo=google-calendar)](https://calendar.google.com/)
 
-![Extension Demo](https://via.placeholder.com/800x400/2563eb/ffffff?text=Quick+Reminder+Capture+Demo)
+![Extension Demo](https://via.placeholder.com/800x400/2563eb/ffffff?text=Create+Reminders+Demo)
 <!-- TODO: Replace with actual screenshot -->
 
 ## ✨ Features
@@ -65,12 +65,23 @@ The setup guide includes:
 Requires one-time OAuth setup. See [Google Calendar Setup](SETUP.md#full-setup-with-google-calendar) for detailed instructions.
 
 #### Apple Reminders (macOS only)
-Simply run the included helper script:
+
+**Option 1: Auto-start (Recommended)**
+Install the bridge to start automatically on login:
+```bash
+./install-launchagent.sh install
+```
+Once installed, the bridge runs in the background and is always available. The extension shows a status indicator (🟢/🔴) in the popup.
+
+**Option 2: Manual start**
+Run the bridge only when needed:
 ```bash
 ./start-bridge.sh
 ```
 
-See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) for details.
+**No manual token copy needed!** The bridge automatically saves the auth token to `bridge_config.json`, and the extension reads it from there.
+
+See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) and [Auto-Start Guide](BRIDGE_AUTOSTART.md) for details.
 
 ## 📋 Daily Usage
 
@@ -86,17 +97,21 @@ See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) for
 ## 📂 Project Structure
 
 ```
-├── manifest.json            # Chrome extension manifest (MV3)
-├── manifest.example.json    # Template with placeholder OAuth credentials
-├── background.js            # Service worker: context menu, storage, API calls
-├── popup.html              # Extension popup UI structure
-├── popup.css               # Popup styling with toast notifications
-├── popup.js                # Popup logic and event handlers
-├── apple_reminders_bridge.py  # Python bridge for Apple Reminders (macOS)
-├── start-bridge.sh         # Helper script to launch the bridge
-├── SETUP.md                # Detailed setup and configuration guide
-├── README.md               # This file
-└── LICENSE                 # MIT License
+├── manifest.json                      # Chrome extension manifest (MV3)
+├── background.js                      # Service worker: context menu, storage, API calls
+├── popup.html                         # Extension popup UI structure
+├── popup.css                          # Popup styling with toast notifications
+├── popup.js                           # Popup logic and event handlers
+├── capture-dialog.js                  # Injected dialog for intelligent date capture
+├── apple_reminders_bridge.py          # Python bridge for Apple Reminders (macOS)
+├── bridge_config.json                 # Auto-generated auth token (not in git)
+├── start-bridge.sh                    # Helper script to launch the bridge manually
+├── install-launchagent.sh             # Install/manage auto-start (LaunchAgent)
+├── com.user.apple-reminders-bridge.plist  # LaunchAgent configuration
+├── SETUP.md                           # Detailed setup and configuration guide
+├── BRIDGE_AUTOSTART.md                # Auto-start guide for the bridge
+├── README.md                          # This file
+└── LICENSE                            # MIT License
 ```
 
 ## 🛠️ Tech Stack

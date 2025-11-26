@@ -17,6 +17,8 @@ import subprocess
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import secrets
+import os
+from pathlib import Path
 
 PORT = 19092
 # Generate a random token on startup for basic security
@@ -25,6 +27,8 @@ AUTH_TOKEN = secrets.token_urlsafe(32)
 # Maximum length for reminder text and notes to prevent abuse
 MAX_TEXT_LENGTH = 1000
 MAX_NOTES_LENGTH = 2000
+# Default list name for reminders
+DEFAULT_LIST_NAME = "Create Reminders"
 
 
 def sanitize_applescript_string(s: str, max_length: int) -> str:
@@ -63,11 +67,12 @@ def _parse_due(iso_value: str):
         return ""
 
 
-def add_reminder(title: str, notes: str, due_at: str):
+def add_reminder(title: str, notes: str, due_at: str, list_name: str = None):
     # Sanitize inputs to prevent AppleScript injection
     safe_title = sanitize_applescript_string(title, MAX_TEXT_LENGTH)
     safe_notes = sanitize_applescript_string(notes, MAX_NOTES_LENGTH)
     safe_due_at = sanitize_applescript_string(due_at, 50)  # Date format is short
+    safe_list_name = sanitize_applescript_string(list_name or DEFAULT_LIST_NAME, 100)
     
     if not safe_title:
         safe_title = "Reminder"
@@ -79,11 +84,12 @@ def add_reminder(title: str, notes: str, due_at: str):
     script = f'''
       set reminderName to "{safe_title}"
       set reminderNotes to "{safe_notes}"
+      set listName to "{safe_list_name}"
       tell application "Reminders"
-        if (not (exists list "Quick Capture")) then
-          make new list with properties {{name:"Quick Capture"}}
+        if (not (exists list listName)) then
+          make new list with properties {{name:listName}}
         end if
-        set theList to list "Quick Capture"
+        set theList to list listName
         set theReminder to make new reminder at end of theList with properties {{name:reminderName, body:reminderNotes}}
         {due_clause}
       end tell
@@ -131,6 +137,7 @@ class Handler(BaseHTTPRequestHandler):
 
         text = data.get("text") or "Reminder"
         due_at = _parse_due(data.get("dueAt") or "")
+        list_name = data.get("listName") or DEFAULT_LIST_NAME
         
         # Validate input lengths
         if len(text) > MAX_TEXT_LENGTH:
@@ -148,7 +155,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send(400, {"error": f"Notes too long (max {MAX_NOTES_LENGTH} chars)"})
             return
 
-        proc = add_reminder(text, notes, due_at)
+        proc = add_reminder(text, notes, due_at, list_name)
         if proc.returncode != 0:
             self._send(500, {"error": proc.stderr.strip() or "AppleScript failed"})
             return
@@ -157,6 +164,20 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    # Get the directory where this script is located
+    script_dir = Path(__file__).parent
+    config_file = script_dir / "bridge_config.json"
+    
+    # Write the auth token to the config file
+    try:
+        config = {"auth_token": AUTH_TOKEN}
+        with open(config_file, "w") as f:
+            json.dump(config, f, indent=2)
+        print(f"✓ Token written to {config_file}")
+    except Exception as e:
+        print(f"⚠ Warning: Could not write token to config file: {e}")
+        print("  Extension will need manual token setup.")
+    
     server = HTTPServer(("127.0.0.1", PORT), Handler)
     print("=" * 60)
     print("Apple Reminders Bridge - SECURITY NOTICE")
@@ -165,8 +186,8 @@ def main():
     print(f"Auth Token: {AUTH_TOKEN}")
     print()
     print("SETUP:")
-    print("1. Copy the token above to background.js (APPLE_AUTH_TOKEN)")
-    print("2. Reload the Chrome extension")
+    print("✓ Token automatically saved to bridge_config.json")
+    print("✓ Extension will auto-read the token - no manual copy needed!")
     print()
     print("SECURITY:")
     print("- Only run this bridge when needed")

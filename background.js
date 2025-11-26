@@ -1,18 +1,50 @@
 const MENU_ID = "add-reminder-from-selection";
 const GOOGLE_CALENDAR_EVENT_DURATION_MS = 60 * 60 * 1000; // 1 hour
 const APPLE_HELPER_PORT = 19092;
-// IMPORTANT: Replace this with the token shown when you start the Python bridge
-// This prevents unauthorized access to the local bridge
-const APPLE_AUTH_TOKEN = "REPLACE_WITH_TOKEN_FROM_BRIDGE_STARTUP";
 const MAX_REMINDERS = 1000; // Prevent excessive storage use
 const MAX_REMINDER_TEXT_LENGTH = 1000; // Match bridge limit
 const MAX_REMINDER_NOTES_LENGTH = 2000; // Match bridge limit
+
+// Global variable to store the loaded auth token
+let APPLE_AUTH_TOKEN = null;
+
+// Load the auth token from the bridge config file
+async function loadAuthToken() {
+  try {
+    const response = await fetch(chrome.runtime.getURL('bridge_config.json'));
+    if (!response.ok) {
+      console.warn('Bridge config file not found. Bridge may not be running.');
+      return null;
+    }
+    const config = await response.json();
+    return config.auth_token;
+  } catch (error) {
+    console.warn('Could not load auth token from bridge_config.json:', error);
+    return null;
+  }
+}
+
+// Initialize the auth token on startup
+(async () => {
+  APPLE_AUTH_TOKEN = await loadAuthToken();
+  if (APPLE_AUTH_TOKEN && APPLE_AUTH_TOKEN !== 'REPLACE_ON_BRIDGE_STARTUP') {
+    console.log('✓ Auth token loaded successfully from bridge_config.json');
+  } else {
+    console.warn('⚠ No valid auth token found. Start the Python bridge to generate one.');
+  }
+})();
 
 function ensureMenu() {
   chrome.contextMenus.create({
     id: MENU_ID,
     title: "Add to Reminders",
     contexts: ["selection"]
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.error("Error creating context menu:", chrome.runtime.lastError);
+    } else {
+      console.log("Context menu created successfully");
+    }
   });
 }
 
@@ -23,29 +55,57 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  console.log("Context menu clicked!", info);
   if (info.menuItemId !== MENU_ID || !info.selectionText) return;
 
   const trimmed = info.selectionText.trim();
   if (!trimmed) return;
 
-  const reminder = {
-    id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-    text: trimmed,
-    sourceUrl: info.pageUrl || tab?.url || "",
-    sourceTitle: tab?.title || "",
-    createdAt: new Date().toISOString()
-  };
+  // Inject capture dialog into the page
+  try {
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['capture-dialog.js']
+    });
 
-  const { reminders = [] } = await chrome.storage.local.get(["reminders"]);
-  
-  // Enforce storage limit
-  if (reminders.length >= MAX_REMINDERS) {
-    console.warn(`Maximum ${MAX_REMINDERS} reminders reached. Oldest reminder not saved.`);
-    return;
+    // User cancelled or dialog failed
+    if (!result || !result.result) {
+      console.log("User cancelled reminder creation");
+      return;
+    }
+
+    const { text, dueAt } = result.result;
+
+    const reminder = {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+      text: text,
+      dueAt: dueAt || null,
+      sourceUrl: info.pageUrl || tab?.url || "",
+      sourceTitle: tab?.title || "",
+      createdAt: new Date().toISOString()
+    };
+
+    const { reminders = [] } = await chrome.storage.local.get(["reminders"]);
+    
+    // Enforce storage limit
+    if (reminders.length >= MAX_REMINDERS) {
+      console.warn(`Maximum ${MAX_REMINDERS} reminders reached. Oldest reminder not saved.`);
+      return;
+    }
+    
+    reminders.unshift(reminder);
+    await chrome.storage.local.set({ reminders });
+    console.log("Reminder saved:", reminder);
+    
+    // Show badge notification
+    chrome.action.setBadgeText({ text: "✓" });
+    chrome.action.setBadgeBackgroundColor({ color: "#10b981" }); // green
+    setTimeout(() => {
+      chrome.action.setBadgeText({ text: "" }); // Clear after 2 seconds
+    }, 2000);
+  } catch (err) {
+    console.error("Could not show capture dialog:", err);
   }
-  
-  reminders.unshift(reminder);
-  await chrome.storage.local.set({ reminders });
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -65,11 +125,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
 
     if (message.type === "apple-reminders") {
-      const { reminder } = message;
+      const { reminder, listName } = message;
+      console.log("Received apple-reminders message with listName:", listName);
       if (!validateReminder(reminder)) {
         throw new Error("Invalid reminder object");
       }
-      const result = await sendToAppleHelper(reminder);
+      const result = await sendToAppleHelper(reminder, listName);
       return result;
     }
     
@@ -151,7 +212,18 @@ function getGoogleToken() {
   });
 }
 
-async function sendToAppleHelper(reminder) {
+async function sendToAppleHelper(reminder, listName = "Create Reminders") {
+  console.log("sendToAppleHelper called with listName:", listName);
+  
+  // Reload token if not available (e.g., bridge just started)
+  if (!APPLE_AUTH_TOKEN || APPLE_AUTH_TOKEN === 'REPLACE_ON_BRIDGE_STARTUP') {
+    console.log('Reloading auth token...');
+    APPLE_AUTH_TOKEN = await loadAuthToken();
+    if (!APPLE_AUTH_TOKEN || APPLE_AUTH_TOKEN === 'REPLACE_ON_BRIDGE_STARTUP') {
+      throw new Error('Bridge not running. Start the Python bridge first: ./start-bridge.sh');
+    }
+  }
+  
   // Validate input lengths before sending
   const combinedNotes = `${reminder.sourceTitle || ""} ${reminder.sourceUrl || ""}`.trim();
   if (combinedNotes.length > MAX_REMINDER_NOTES_LENGTH) {
@@ -162,8 +234,11 @@ async function sendToAppleHelper(reminder) {
     text: reminder.text,
     dueAt: reminder.dueAt || null,
     sourceUrl: reminder.sourceUrl || "",
-    sourceTitle: reminder.sourceTitle || ""
+    sourceTitle: reminder.sourceTitle || "",
+    listName: listName || "Create Reminders"  // Use provided list name or default
   };
+  
+  console.log("Sending payload to bridge:", payload);
 
   try {
     const resp = await fetch(`http://localhost:${APPLE_HELPER_PORT}/reminder`, {

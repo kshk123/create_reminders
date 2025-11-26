@@ -71,6 +71,81 @@ p {
   box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
 }
 
+/* Settings section */
+.settings-section {
+  margin-top: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.settings-section summary {
+  cursor: pointer;
+  padding: 10px 12px;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 500;
+  user-select: none;
+  list-style: none;
+}
+
+.settings-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-section summary:hover {
+  background: #f1f5f9;
+}
+
+.settings-content {
+  padding: 12px;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+}
+
+.settings-content label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.settings-content input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.settings-content input[type="text"]:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.settings-content button {
+  width: 100%;
+  padding: 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.settings-content button:hover {
+  background: #1d4ed8;
+}
+
+.settings-content button:active {
+  background: #1e40af;
+}
+
 section + section {
   margin-top: 12px;
 }

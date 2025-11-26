@@ -39,10 +39,8 @@ yarn-error.log*
 .env
 .env.local
 
-# Don't commit user-specific manifest with real OAuth credentials
-# Users should copy manifest.example.json to manifest.json
-# and add their own credentials
-# manifest.json
+# Security: Never commit the bridge config with auth tokens
+bridge_config.json
 
 # Node modules (if you add any build tools later)
 node_modules/

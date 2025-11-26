@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Quick Reminder Capture",
+  "name": "Create Reminders",
   "description": "Save reminder dates from selected text and review them later in a popup.",
   "version": "0.1.0",
   "permissions": [
     "storage",
     "contextMenus",
     "activeTab",
-    "identity"
+    "identity",
+    "scripting"
   ],
   "host_permissions": [
     "http://localhost:19092/*"
@@ -27,5 +28,11 @@
   "action": {
     "default_title": "Reminders",
     "default_popup": "popup.html"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["capture-dialog.js", "bridge_config.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

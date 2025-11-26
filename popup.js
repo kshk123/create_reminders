@@ -11,6 +11,7 @@ const bridgeStatus = document.getElementById("bridge-status");
 // Storage limits
 const MAX_REMINDERS = 1000; // Prevent excessive storage use
 const MAX_REMINDER_TEXT_LENGTH = 1000; // Match bridge/backend limits
+const DEFAULT_APPLE_LIST_NAME = "Create Reminders";
 
 // Toast notification helper
 function showToast(message, type = "info") {
@@ -301,6 +302,25 @@ async function sendToApple(rowEl) {
   const btn = rowEl.querySelector(".apple-btn");
   if (!btn) return;
 
+  // Get last used list name (or default)
+  const { appleListName = DEFAULT_APPLE_LIST_NAME } = await chrome.storage.local.get(["appleListName"]);
+  
+  // Ask user for list name with default value
+  const listName = prompt("Enter Apple Reminders list name:", appleListName);
+  
+  // User cancelled
+  if (listName === null) {
+    console.log("User cancelled Apple Reminders send");
+    return;
+  }
+  
+  // Use provided name or fallback to default
+  const finalListName = listName.trim() || DEFAULT_APPLE_LIST_NAME;
+  
+  // Save for next time
+  await chrome.storage.local.set({ appleListName: finalListName });
+  console.log("Sending to Apple with list name:", finalListName);
+
   // Show loading state
   const originalText = btn.textContent;
   btn.disabled = true;
@@ -309,10 +329,11 @@ async function sendToApple(rowEl) {
   try {
     const resp = await chrome.runtime.sendMessage({
       type: "apple-reminders",
-      reminder
+      reminder,
+      listName: finalListName
     });
     if (!resp?.ok) throw new Error(resp?.error || "Unknown error");
-    showToast("Sent to Apple Reminders successfully!", "success");
+    showToast(`✓ Sent to Apple Reminders (list: '${finalListName}')`, "success");
   } catch (err) {
     showToast(`Apple Reminders: ${err.message}`, "error");
   } finally {

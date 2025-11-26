@@ -1,6 +1,8 @@
-# Quick Reminder Capture - Setup Guide
+# Create Reminders - Setup Guide
 
 This guide will help you set up the Chrome extension with Google Calendar and Apple Reminders integration.
+
+> **GitHub Repository**: [https://github.com/kshk123/create_reminders](https://github.com/kshk123/create_reminders)
 
 ---
 
@@ -43,7 +45,7 @@ To enable the "Send to Google Calendar" feature, you need to set up Google OAuth
 ### Step 1: Get Your Extension ID
 
 1. Go to `chrome://extensions/`
-2. Find "Quick Reminder Capture" in the list
+2. Find "Create Reminders" in the list
 3. **Copy the Extension ID** (looks like: `abcdefghijklmnopqrstuvwxyz123456`)
 4. Keep this handy - you'll need it in the next steps
 
@@ -75,7 +77,7 @@ To enable the "Send to Google Calendar" feature, you need to set up Google OAuth
    - User Type: Select **"External"**
    - Click **"Create"**
    - Fill in the required fields:
-     - App name: `Quick Reminder Capture`
+     - App name: `Create Reminders`
      - User support email: Your email
      - Developer contact: Your email
    - Click **"Save and Continue"**
@@ -90,7 +92,7 @@ To enable the "Send to Google Calendar" feature, you need to set up Google OAuth
 
 4. Go back to **"Credentials"** → **"Create Credentials"** → **"OAuth client ID"**
 5. Application type: Select **"Chrome Extension"** (or "Chrome App")
-6. Name: `Quick Reminder Capture`
+6. Name: `Create Reminders`
 7. **Item ID:** Paste your Extension ID from Step 1
 8. Click **"Create"**
 
@@ -114,7 +116,7 @@ To enable the "Send to Google Calendar" feature, you need to set up Google OAuth
 ### Step 7: Reload the Extension
 
 1. Go to `chrome://extensions/`
-2. Find "Quick Reminder Capture"
+2. Find "Create Reminders"
 3. Click the **refresh/reload icon** (circular arrow)
 
 ### Step 8: Test Google Calendar Integration
@@ -148,29 +150,26 @@ cd /Users/basu/CodeBase/apps/set_reminders
 
 You should see:
 ```
-========================================
-  Apple Reminders Bridge Launcher
-========================================
-
-✓ Starting Apple Reminders bridge...
-Bridge will run on: http://localhost:19092
-Press Ctrl+C to stop
-
-=========================================
-
-Apple Reminders bridge running on http://localhost:19092/reminder
+=============================================================
+Apple Reminders Bridge - SECURITY NOTICE
+=============================================================
+Bridge running on: http://localhost:19092/reminder
 Auth Token: abc123xyz...
-Copy this token to your extension's background.js (APPLE_AUTH_TOKEN)
-Press Ctrl+C to stop
+
+SETUP:
+✓ Token automatically saved to bridge_config.json
+✓ Extension will auto-read the token - no manual copy needed!
+
+SECURITY:
+- Only run this bridge when needed
+- Stop the bridge when not in use (Ctrl+C)
+- Token changes each restart for security
+- Bridge only accepts connections from localhost
 ```
 
-**IMPORTANT**: Copy the Auth Token shown and paste it into `background.js`:
-1. Open `background.js` in your extension folder
-2. Find the line: `const APPLE_AUTH_TOKEN = "REPLACE_WITH_TOKEN_FROM_BRIDGE_STARTUP";`
-3. Replace `REPLACE_WITH_TOKEN_FROM_BRIDGE_STARTUP` with your actual token
-4. Reload the extension in Chrome
+**That's it!** The extension will automatically read the token from `bridge_config.json`.
 
-**Note**: The token changes each time you restart the bridge, so you'll need to update it if you restart.
+**Note**: The token changes each time you restart the bridge for security. The extension will automatically reload it as needed.
 
 **Keep this terminal window open** while using the extension.
 
@@ -189,7 +188,15 @@ The first time you send a reminder to Apple Reminders:
 3. (Optional) Set a date/time
 4. Click **"Send to Apple Reminders"**
 5. Check the **Reminders app** on your Mac
-6. Look for a list called **"Quick Capture"** - your reminder should be there! 🎉
+6. Look for a list called **"Create Reminders"** - your reminder should be there! 🎉
+
+**Important Notes:**
+- ⚠️ **Deleting a reminder from the extension does NOT delete it from Apple Reminders**
+  - You must manually delete reminders in the Reminders app
+  - This is a limitation of the AppleScript API
+- 📝 The list name is "Create Reminders" (same as the extension name)
+- 🔄 Editing a reminder in the extension doesn't update Apple Reminders
+  - Send it again as a new reminder if needed
 
 ### Running the Bridge Automatically (Optional)
 
