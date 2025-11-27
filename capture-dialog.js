@@ -5,16 +5,20 @@
 
   // Function to extract and parse dates from text
   function extractDate(text) {
-    // Try various date formats
+    const currentYear = new Date().getFullYear();
+    
+    // Try various date formats (ordered from most specific to least specific)
     const patterns = [
       // ISO format: 2025-12-25, 2025/12/25
       /(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})/,
-      // US format: 12/25/2025, 12-25-2025
-      /(\d{1,2}[-\/]\d{1,2}[-\/]\d{4})/,
-      // Natural language: December 25, 2025 or Dec 25 2025
-      /((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4})/i,
+      // Natural language with year: December 25, 2025 or Dec 25th, 2026
+      /((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i,
       // Day Month Year: 25 December 2025
-      /(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4})/i,
+      /(\d{1,2})\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)\s+(\d{4})/i,
+      // US format with year: 12/25/2025, 12-25-2025
+      /(\d{1,2}[-\/]\d{1,2}[-\/]\d{4})/,
+      // Month Day with ordinal (December 18th, Dec 25th) - without year
+      /((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?(?!\s*,?\s*\d{4})/i,
       // Relative dates: tomorrow, next week, next month
       /(tomorrow|next\s+(?:week|month|monday|tuesday|wednesday|thursday|friday|saturday|sunday))/i,
     ];
@@ -22,9 +26,10 @@
     for (const pattern of patterns) {
       const match = text.match(pattern);
       if (match) {
-        const dateStr = match[1];
+        // Use match[0] for the full matched text
+        const dateStr = match[0];
         
-        // Handle relative dates
+        // Handle relative dates first (they use match[0])
         if (/tomorrow/i.test(dateStr)) {
           const tomorrow = new Date();
           tomorrow.setDate(tomorrow.getDate() + 1);
@@ -46,21 +51,60 @@
           return nextMonth;
         }
         
-        // Handle day of week (next Monday, next Friday, etc.)
-        const dayMatch = dateStr.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
-        if (dayMatch) {
-          const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-          const targetDay = days.indexOf(dayMatch[1].toLowerCase());
-          const today = new Date();
-          const currentDay = today.getDay();
-          const daysUntilTarget = (targetDay - currentDay + 7) % 7 || 7; // Next occurrence
-          const nextDate = new Date();
-          nextDate.setDate(today.getDate() + daysUntilTarget);
-          nextDate.setHours(9, 0, 0, 0);
-          return nextDate;
+      // Handle day of week (next Monday, next Friday, etc.)
+      const dayMatch = dateStr.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
+      if (dayMatch) {
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const targetDay = days.indexOf(dayMatch[1].toLowerCase());
+        const today = new Date();
+        const currentDay = today.getDay();
+        const daysUntilTarget = (targetDay - currentDay + 7) % 7 || 7; // Next occurrence
+        const nextDate = new Date();
+        nextDate.setDate(today.getDate() + daysUntilTarget);
+        nextDate.setHours(9, 0, 0, 0);
+        return nextDate;
+      }
+      
+      // Handle "Month Day Year" with optional ordinals (e.g., "December 25th, 2026")
+      const monthDayYearMatch = dateStr.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i);
+      if (monthDayYearMatch) {
+        const monthName = monthDayYearMatch[1];
+        const day = parseInt(monthDayYearMatch[2]);
+        const year = parseInt(monthDayYearMatch[3]);
+        
+        const parsed = new Date(`${monthName} ${day}, ${year}`);
+        if (!isNaN(parsed.getTime())) {
+          parsed.setHours(9, 0, 0, 0);
+          return parsed;
+        }
+      }        // Handle "Month Day" format WITHOUT year (e.g., "December 18th", "Dec 25")
+        // This pattern should only match if there's NO year in the matched text
+        const monthDayMatch = dateStr.match(/^((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?$/i);
+        if (monthDayMatch) {
+          const monthName = monthDayMatch[1];
+          const day = parseInt(monthDayMatch[2]);
+          
+          // Try parsing with current year first
+          let parsed = new Date(`${monthName} ${day}, ${currentYear}`);
+          parsed.setHours(9, 0, 0, 0);
+          
+          // Compare dates only (not times) - normalize to midnight for comparison
+          const now = new Date();
+          const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const parsedDate = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+          
+          // If the date is in the past, try next year
+          if (parsedDate < nowDate) {
+            parsed = new Date(`${monthName} ${day}, ${currentYear + 1}`);
+            parsed.setHours(9, 0, 0, 0);
+          }
+          
+          if (!isNaN(parsed.getTime())) {
+            return parsed;
+          }
         }
         
-        // Try parsing the date string
+        // Try parsing the date string directly (works for ISO, US format, and full date strings)
         const parsed = new Date(dateStr);
         if (!isNaN(parsed.getTime())) {
           // Check if date is in the future
@@ -96,7 +140,48 @@
     return null;
   }
 
+  // Function to set reminder time before event
+  function setReminderBeforeEvent(eventDate) {
+    if (!eventDate) return null;
+    
+    const now = new Date();
+    const eventTime = new Date(eventDate);
+    const hoursDiff = (eventTime - now) / (1000 * 60 * 60);
+    
+    // If event is more than 24 hours away, remind 24 hours before
+    if (hoursDiff > 24) {
+      const reminderDate = new Date();
+      reminderDate.setTime(eventTime.getTime() - 24 * 60 * 60 * 1000);
+      return reminderDate;
+    }
+    
+    // If event is more than 4 hours away, remind 4 hours before
+    if (hoursDiff > 4) {
+      const reminderDate = new Date();
+      reminderDate.setTime(eventTime.getTime() - 4 * 60 * 60 * 1000);
+      return reminderDate;
+    }
+    
+    // If event is more than 2 hours away, remind 2 hours before
+    if (hoursDiff > 2) {
+      const reminderDate = new Date();
+      reminderDate.setTime(eventTime.getTime() - 2 * 60 * 60 * 1000);
+      return reminderDate;
+    }
+    
+    // Otherwise, remind now (or 30 minutes before if possible)
+    if (hoursDiff > 0.5) {
+      const reminderDate = new Date();
+      reminderDate.setTime(eventTime.getTime() - 30 * 60 * 1000);
+      return reminderDate;
+    }
+    
+    // Event is very soon or in the past, use current time
+    return now;
+  }
+
   const detectedDate = extractDate(selectedText);
+  const reminderDate = detectedDate ? setReminderBeforeEvent(detectedDate) : null;
 
   // Create overlay
   const overlay = document.createElement('div');
@@ -127,6 +212,59 @@
 
   const preview = selectedText.length > 150 ? selectedText.substring(0, 150) + '...' : selectedText;
 
+  // Calculate time difference for display
+  let reminderInfo = '';
+  if (detectedDate && reminderDate) {
+    const hoursDiff = Math.round((detectedDate - reminderDate) / (1000 * 60 * 60));
+    const minutesDiff = Math.round((detectedDate - reminderDate) / (1000 * 60));
+    
+    // Validate that reminder is before the event
+    if (reminderDate > detectedDate) {
+      // This shouldn't happen, but if it does, just show the detected date
+      reminderInfo = `
+      <div style="background: #dbeafe; border-left: 3px solid #2563eb; padding: 10px 12px; margin-bottom: 12px; border-radius: 4px;">
+        <div style="font-size: 12px; color: #1e40af; font-weight: 500;">
+          📅 Event detected: ${detectedDate.toLocaleString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+          })}
+        </div>
+      </div>
+      `;
+    } else {
+      let timeDiffText = '';
+      if (hoursDiff >= 24) {
+        timeDiffText = `${Math.floor(hoursDiff / 24)} day${hoursDiff >= 48 ? 's' : ''} before`;
+      } else if (hoursDiff > 0) {
+        timeDiffText = `${hoursDiff} hour${hoursDiff > 1 ? 's' : ''} before`;
+      } else if (minutesDiff > 0) {
+        timeDiffText = `${minutesDiff} minute${minutesDiff > 1 ? 's' : ''} before`;
+      } else {
+        timeDiffText = 'now';
+      }
+      
+      reminderInfo = `
+      <div style="background: #dbeafe; border-left: 3px solid #2563eb; padding: 10px 12px; margin-bottom: 12px; border-radius: 4px;">
+        <div style="font-size: 12px; color: #1e40af; font-weight: 500; margin-bottom: 4px;">
+          📅 Event detected: ${detectedDate.toLocaleString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+          })}
+        </div>
+        <div style="font-size: 12px; color: #1e40af;">
+          ⏰ Reminder set: ${timeDiffText}
+        </div>
+      </div>
+      `;
+    }
+  }
+
   dialog.innerHTML = `
     <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1f2937;">
       📝 Add to Reminders
@@ -134,22 +272,9 @@
     <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 16px; color: #374151; font-size: 14px; line-height: 1.5; max-height: 100px; overflow-y: auto;">
       "${preview}"
     </div>
-    ${detectedDate ? `
-    <div style="background: #dbeafe; border-left: 3px solid #2563eb; padding: 10px 12px; margin-bottom: 12px; border-radius: 4px;">
-      <div style="font-size: 13px; color: #1e40af; font-weight: 500;">
-        🤖 Detected date: ${detectedDate.toLocaleString('en-US', { 
-          weekday: 'short', 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit'
-        })}
-      </div>
-    </div>
-    ` : ''}
+    ${reminderInfo}
     <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #374151;">
-      Due Date & Time (optional):
+      Reminder Date & Time (optional):
     </label>
     <input type="datetime-local" id="reminderDueDate" style="
       width: 100%;
@@ -197,8 +322,9 @@
   setTimeout(() => {
     const dateInput = document.getElementById('reminderDueDate');
     if (dateInput) {
-      // Use detected date or current time
-      const defaultDate = detectedDate || new Date();
+      // Use reminder date (which is set before the event), or current time if no date detected
+      // Create a new Date object to avoid mutating reminderDate
+      const defaultDate = new Date(reminderDate || new Date());
       defaultDate.setMinutes(defaultDate.getMinutes() - defaultDate.getTimezoneOffset());
       dateInput.value = defaultDate.toISOString().slice(0, 16);
     }

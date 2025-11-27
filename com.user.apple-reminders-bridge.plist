@@ -24,7 +24,10 @@
     <string>/Users/basu/Library/Logs/apple-reminders-bridge-error.log</string>
     
     <key>WorkingDirectory</key>
-    <string>/Users/basu/CodeBase/apps/set_reminders</string>
+    <string>/tmp</string>
+    
+    <key>ProcessType</key>
+    <string>Interactive</string>
     
     <key>EnvironmentVariables</key>
     <dict>

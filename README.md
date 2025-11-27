@@ -2,13 +2,10 @@
 
 > A Chrome extension to capture reminders from any webpage and sync them to Google Calendar or Apple Reminders.
 
-[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue?logo=google-chrome)](https://chrome.google.com/webstore)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Reminders-black?logo=apple)](https://www.apple.com/reminders/)
 [![Google Calendar](https://img.shields.io/badge/Google-Calendar-green?logo=google-calendar)](https://calendar.google.com/)
 
-![Extension Demo](https://via.placeholder.com/800x400/2563eb/ffffff?text=Create+Reminders+Demo)
-<!-- TODO: Replace with actual screenshot -->
 
 ## ✨ Features
 
@@ -17,9 +14,6 @@
 - 📆 **Google Calendar sync** - Send reminders directly to your Google Calendar
 - 🍎 **Apple Reminders integration** - macOS users can sync to native Reminders app
 - 💾 **Local storage** - All data stays private in your browser
-- 🎨 **Modern UI** - Clean, intuitive interface with toast notifications
-- 🔔 **Status indicators** - Know when services are connected
-- ⚡ **Zero dependencies** - Pure JavaScript, no frameworks needed
 
 ## 📖 Documentation
 
@@ -83,7 +77,7 @@ Run the bridge only when needed:
 
 See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) and [Auto-Start Guide](BRIDGE_AUTOSTART.md) for details.
 
-## 📋 Daily Usage
+## 📋 Usage
 
 - **Capture from any page**: Highlight text → right-click → "Add to Reminders"
   - Automatically saves the text, page title, URL, and timestamp
@@ -92,36 +86,18 @@ See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) and
   - Send to Google Calendar (creates a 1-hour event)
   - Send to Apple Reminders (via local bridge)
   - Delete individual reminders or clear all
-- **Stay organized**: All reminders are stored locally and persist across browser sessions
 
-## 📂 Project Structure
 
-```
-├── manifest.json                      # Chrome extension manifest (MV3)
-├── background.js                      # Service worker: context menu, storage, API calls
-├── popup.html                         # Extension popup UI structure
-├── popup.css                          # Popup styling with toast notifications
-├── popup.js                           # Popup logic and event handlers
-├── capture-dialog.js                  # Injected dialog for intelligent date capture
-├── apple_reminders_bridge.py          # Python bridge for Apple Reminders (macOS)
-├── bridge_config.json                 # Auto-generated auth token (not in git)
-├── start-bridge.sh                    # Helper script to launch the bridge manually
-├── install-launchagent.sh             # Install/manage auto-start (LaunchAgent)
-├── com.user.apple-reminders-bridge.plist  # LaunchAgent configuration
-├── SETUP.md                           # Detailed setup and configuration guide
-├── BRIDGE_AUTOSTART.md                # Auto-start guide for the bridge
-├── README.md                          # This file
-└── LICENSE                            # MIT License
+## 🧪 Testing
+
+Run the test suite to validate date parsing and reminder timing:
+
+```bash
+# Open test runner in browser
+open tests/test-runner.html
 ```
 
-## 🛠️ Tech Stack
-
-- **Manifest V3** - Latest Chrome extension platform
-- **Vanilla JavaScript** - No frameworks, pure JS
-- **Chrome APIs** - Storage, Context Menus, Identity (OAuth)
-- **Google Calendar API** - Calendar integration
-- **AppleScript** - macOS Reminders integration (via Python bridge)
-- **Python 3** - Local HTTP bridge for Apple Reminders
+Click "Run All Tests" to execute the test suite. All tests should pass.
 
 ## ⚙️ Features Breakdown
 
