@@ -72,7 +72,7 @@
           const day = parseInt(monthDayYearMatch[2]);
           const year = parseInt(monthDayYearMatch[3]);
           
-          const parsed = new Date(\`\${monthName} \${day}, \${year}\`);
+          const parsed = new Date(`${monthName} ${day}, ${year}`);
           if (!isNaN(parsed.getTime())) {
             parsed.setHours(9, 0, 0, 0);
             return parsed;
@@ -87,7 +87,7 @@
           const day = parseInt(monthDayMatch[2]);
           
           // Try parsing with current year first
-          let parsed = new Date(\`\${monthName} \${day}, \${currentYear}\`);
+          let parsed = new Date(`${monthName} ${day}, ${currentYear}`);
           parsed.setHours(9, 0, 0, 0);
           
           // Compare dates only (not times) - normalize to midnight for comparison
@@ -97,7 +97,7 @@
           
           // If the date is in the past, try next year
           if (parsedDate < nowDate) {
-            parsed = new Date(\`\${monthName} \${day}, \${currentYear + 1}\`);
+            parsed = new Date(`${monthName} ${day}, ${currentYear + 1}`);
             parsed.setHours(9, 0, 0, 0);
           }
           
@@ -187,7 +187,7 @@
 
   // Create overlay
   const overlay = document.createElement('div');
-  overlay.style.cssText = \`
+  overlay.style.cssText = `
     position: fixed;
     top: 0;
     left: 0;
@@ -199,18 +199,18 @@
     align-items: center;
     justify-content: center;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  \`;
+  `;
 
   // Create dialog
   const dialog = document.createElement('div');
-  dialog.style.cssText = \`
+  dialog.style.cssText = `
     background: white;
     border-radius: 12px;
     padding: 24px;
     max-width: 500px;
     width: 90%;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  \`;
+  `;
 
   const preview = selectedText.length > 150 ? selectedText.substring(0, 150) + '...' : selectedText;
 
@@ -223,10 +223,10 @@
     // Validate that reminder is before the event
     if (reminderDate > detectedDate) {
       // This shouldn't happen, but if it does, just show the detected date
-      reminderInfo = \`
+      reminderInfo = `
       <div style="background: #dbeafe; border-left: 3px solid #2563eb; padding: 10px 12px; margin-bottom: 12px; border-radius: 4px;">
         <div style="font-size: 12px; color: #1e40af; font-weight: 500;">
-          📅 Event detected: \${detectedDate.toLocaleString('en-US', { 
+          📅 Event detected: ${detectedDate.toLocaleString('en-US', { 
             weekday: 'short', 
             month: 'short', 
             day: 'numeric',
@@ -235,23 +235,23 @@
           })}
         </div>
       </div>
-      \`;
+      `;
     } else {
       let timeDiffText = '';
       if (hoursDiff >= 24) {
-        timeDiffText = \`\${Math.floor(hoursDiff / 24)} day\${hoursDiff >= 48 ? 's' : ''} before\`;
+        timeDiffText = `${Math.floor(hoursDiff / 24)} day${hoursDiff >= 48 ? 's' : ''} before`;
       } else if (hoursDiff > 0) {
-        timeDiffText = \`\${hoursDiff} hour\${hoursDiff > 1 ? 's' : ''} before\`;
+        timeDiffText = `${hoursDiff} hour${hoursDiff > 1 ? 's' : ''} before`;
       } else if (minutesDiff > 0) {
-        timeDiffText = \`\${minutesDiff} minute\${minutesDiff > 1 ? 's' : ''} before\`;
+        timeDiffText = `${minutesDiff} minute${minutesDiff > 1 ? 's' : ''} before`;
       } else {
         timeDiffText = 'now';
       }
       
-      reminderInfo = \`
+      reminderInfo = `
       <div style="background: #dbeafe; border-left: 3px solid #2563eb; padding: 10px 12px; margin-bottom: 12px; border-radius: 4px;">
         <div style="font-size: 12px; color: #1e40af; font-weight: 500; margin-bottom: 4px;">
-          📅 Event detected: \${detectedDate.toLocaleString('en-US', { 
+          📅 Event detected: ${detectedDate.toLocaleString('en-US', { 
             weekday: 'short', 
             month: 'short', 
             day: 'numeric',
@@ -260,21 +260,21 @@
           })}
         </div>
         <div style="font-size: 12px; color: #1e40af;">
-          ⏰ Reminder set: \${timeDiffText}
+          ⏰ Reminder set: ${timeDiffText}
         </div>
       </div>
-      \`;
+      `;
     }
   }
 
-  dialog.innerHTML = \`
+  dialog.innerHTML = `
     <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1f2937;">
       📝 Add to Reminders
     </h3>
     <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 16px; color: #374151; font-size: 14px; line-height: 1.5; max-height: 100px; overflow-y: auto;">
-      "\${preview}"
+      "${preview}"
     </div>
-    \${reminderInfo}
+    ${reminderInfo}
     <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #374151;">
       Reminder Date & Time (optional):
     </label>
@@ -315,7 +315,7 @@
         justify-content: center;
       ">Save Reminder</button>
     </div>
-  \`;
+  `;
 
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
