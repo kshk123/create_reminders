@@ -339,10 +339,7 @@ function testDayBoundaries() {
   
   // Test event at 2 AM with 4h reminder (should be 10 PM previous day)
   const event2am = new Date('2025-12-18T02:00:00');
-  const now = new Date('2025-12-17T20:00:00'); // Simulate now as 8 PM previous day
-  
-  // Manually calculate expected (can't use setReminderBeforeEvent as it uses real 'now')
-  const hoursDiff = (event2am - now) / (1000 * 60 * 60); // 6 hours
+  // Expected: 4 hours before 2 AM = 10 PM previous day
   const expectedReminder = new Date(event2am.getTime() - 4 * 60 * 60 * 1000); // 10 PM previous day
   
   if (expectedReminder.getDate() !== 17 || expectedReminder.getHours() !== 22) {
@@ -361,10 +358,6 @@ function testEdgeCases() {
   
   // December 18th at 9 AM when it's already 3 PM on Dec 18
   // Should NOT roll to next year
-  const sameDay = new Date(now);
-  sameDay.setHours(9, 0, 0, 0);
-  
-  const sameDayStr = sameDay.toLocaleString('en-US', { month: 'long', day: 'numeric' });
   // This is tricky to test without mocking Date, but we've validated the logic
   
   console.log('✅ All edge case tests passed!');

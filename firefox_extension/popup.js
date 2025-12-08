@@ -33,7 +33,7 @@ function showToast(message, type = "info") {
 // Check if Apple Reminders bridge is running
 async function checkBridgeStatus() {
   try {
-    const resp = await fetch("http://localhost:19092/reminder", {
+    await fetch("http://localhost:19092/reminder", {
       method: "OPTIONS"
     });
     updateBridgeStatus(true);

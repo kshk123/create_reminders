@@ -17,7 +17,6 @@ import subprocess
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import secrets
-import os
 from pathlib import Path
 
 PORT = 19092
@@ -207,7 +206,7 @@ def main():
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        pass
+        pass  # Graceful shutdown on Ctrl+C
     finally:
         server.server_close()
 
