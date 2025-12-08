@@ -1,4 +1,4 @@
-// Chrome-specific background (MV3)
+// Firefox-specific background (MV3-ish, promise-based APIs)
 const MENU_ID = "add-reminder-from-selection";
 const GOOGLE_CALENDAR_EVENT_DURATION_MS = 60 * 60 * 1000; // 1 hour
 const APPLE_HELPER_PORT = 19092;
@@ -6,116 +6,111 @@ const MAX_REMINDERS = 1000; // Prevent excessive storage use
 const MAX_REMINDER_TEXT_LENGTH = 1000; // Match bridge limit
 const MAX_REMINDER_NOTES_LENGTH = 2000; // Match bridge limit
 
-// Global variable to store the loaded auth token
+// Google OAuth configuration (Firefox MV2 doesn't support manifest oauth2 block)
+const GOOGLE_CLIENT_ID = "1096127465770-99om5eupqi2dou7hpp4e3f8jbv9cu466.apps.googleusercontent.com";
+const GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar.events"];
+
 let APPLE_AUTH_TOKEN = null;
 
-// Load the auth token directly from the running bridge (preferred) or fallback to config file
+// Load the auth token from the running bridge's /token endpoint
+// The bridge must be running for Apple Reminders integration to work
 async function loadAuthToken() {
-  // Try fetching from the bridge directly (always has the current token)
   try {
     const response = await fetch(`http://localhost:${APPLE_HELPER_PORT}/token`);
     if (response.ok) {
       const config = await response.json();
-      console.log('✓ Auth token fetched from bridge');
       return config.auth_token;
     }
   } catch (error) {
-    // Bridge not running, fall back to config file
+    // Bridge not running
   }
-  
-  // Fallback: try the bundled config file
-  try {
-    const response = await fetch(chrome.runtime.getURL('bridge_config.json'));
-    if (!response.ok) {
-      console.warn('Bridge config file not found. Bridge may not be running.');
-      return null;
-    }
-    const config = await response.json();
-    return config.auth_token;
-  } catch (error) {
-    console.warn('Could not load auth token from bridge_config.json:', error);
-    return null;
-  }
+  return null;
 }
 
-// Initialize the auth token on startup
 (async () => {
   APPLE_AUTH_TOKEN = await loadAuthToken();
-  if (APPLE_AUTH_TOKEN && APPLE_AUTH_TOKEN !== 'REPLACE_ON_BRIDGE_STARTUP') {
-    console.log('✓ Auth token loaded successfully from bridge_config.json');
-  } else {
-    console.warn('⚠ No valid auth token found. Start the Python bridge to generate one.');
-  }
 })();
 
-function ensureMenu() {
-  chrome.contextMenus.create({
-    id: MENU_ID,
-    title: "Add to Reminders",
-    contexts: ["selection"]
-  }, () => {
-    if (chrome.runtime.lastError) {
-      console.error("Error creating context menu:", chrome.runtime.lastError);
-    } else {
-      console.log("Context menu created successfully");
+async function ensureMenu() {
+  try {
+    const menusApi = browser.contextMenus || browser.menus;
+    if (!menusApi?.create) {
+      console.error("No menus API available");
+      return;
     }
+    await menusApi.removeAll();
+    await menusApi.create({
+      id: MENU_ID,
+      title: "Add to Reminders",
+      contexts: ["selection"]
+    });
+  } catch (err) {
+    console.error("contextMenus error:", err);
+  }
+}
+
+browser.runtime.onInstalled.addListener(() => {
+  ensureMenu();
+});
+
+// Also ensure the menu exists when the background script first runs (e.g., temporary install)
+ensureMenu().catch((err) => console.error("Failed to ensure context menu on startup:", err));
+
+// Ensure on startup events too (some Firefox versions)
+if (browser.runtime.onStartup) {
+  browser.runtime.onStartup.addListener(() => {
+    ensureMenu().catch((err) => console.error("Failed to ensure context menu on startup event:", err));
   });
 }
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.removeAll(() => {
-    ensureMenu();
-  });
-});
+async function executeScriptCompat(tabId, files) {
+  if (browser.scripting?.executeScript) {
+    return browser.scripting.executeScript({ target: { tabId }, files });
+  }
+  // Fallback for older Firefox builds
+  const results = await browser.tabs.executeScript(tabId, { file: files[0] });
+  return results.map((r) => ({ result: r }));
+}
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+browser.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== MENU_ID || !info.selectionText) return;
-
   const trimmed = info.selectionText.trim();
   if (!trimmed) return;
 
   try {
-    const [result] = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['capture-dialog.js']
-    });
-
-    if (!result || !result.result) {
-      return;
-    }
-
+    const [result] = await executeScriptCompat(tab.id, ['capture-dialog.js']);
+    if (!result || !result.result) return;
     const { text, dueAt } = result.result;
 
     const reminder = {
       id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-      text: text,
+      text,
       dueAt: dueAt || null,
       sourceUrl: info.pageUrl || tab?.url || "",
       sourceTitle: tab?.title || "",
       createdAt: new Date().toISOString()
     };
 
-    const { reminders = [] } = await chrome.storage.local.get(["reminders"]);
-
-    if (reminders.length >= MAX_REMINDERS) {
-      return;
-    }
+    const { reminders = [] } = await browser.storage.local.get(["reminders"]);
+    if (reminders.length >= MAX_REMINDERS) return;
 
     reminders.unshift(reminder);
-    await chrome.storage.local.set({ reminders });
+    await browser.storage.local.set({ reminders });
 
-    chrome.action.setBadgeText({ text: "✓" });
-    chrome.action.setBadgeBackgroundColor({ color: "#10b981" }); // green
-    setTimeout(() => {
-      chrome.action.setBadgeText({ text: "" });
-    }, 2000);
+    // Show badge notification (MV2 uses browserAction, MV3 uses action)
+    const badgeApi = browser.action || browser.browserAction;
+    if (badgeApi?.setBadgeText) {
+      await badgeApi.setBadgeText({ text: "✓" });
+      await badgeApi.setBadgeBackgroundColor({ color: "#10b981" });
+      setTimeout(() => badgeApi.setBadgeText({ text: "" }), 2000);
+    }
   } catch (err) {
     console.error("Could not show capture dialog:", err);
   }
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  const handler = async () => {
+browser.runtime.onMessage.addListener((message) => {
+  return (async () => {
     if (!message || !message.type) throw new Error("Invalid message format");
 
     if (message.type === "google-calendar") {
@@ -131,13 +126,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
 
     throw new Error("Unknown message type");
-  };
-
-  handler()
-    .then((result) => sendResponse({ ok: true, result }))
-    .catch((err) => sendResponse({ ok: false, error: err?.message || String(err) }));
-
-  return true;
+  })();
 });
 
 function validateReminder(reminder) {
@@ -159,8 +148,8 @@ async function createGoogleEvent(reminder) {
     description: reminder.sourceUrl
       ? `${reminder.sourceTitle || "Source"}: ${reminder.sourceUrl}`
       : "Saved from Reminder Capture extension",
-    start: { dateTime: start.toISOString() },
-    end: { dateTime: end.toISOString() }
+  start: { dateTime: start.toISOString() },
+  end: { dateTime: end.toISOString() }
   };
 
   const resp = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
@@ -180,23 +169,48 @@ async function createGoogleEvent(reminder) {
   return await resp.json();
 }
 
-function getGoogleToken() {
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: true }, (token) => {
-      if (chrome.runtime.lastError || !token) {
-        reject(new Error(chrome.runtime.lastError?.message || "No token"));
-      } else {
-        resolve(token);
-      }
-    });
+async function getGoogleToken() {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_SCOPES.length) {
+    throw new Error("Google OAuth not configured");
+  }
+
+  const redirectUri = browser.identity.getRedirectURL();
+  const scopeParam = encodeURIComponent(GOOGLE_SCOPES.join(" "));
+  const authUrl = [
+    "https://accounts.google.com/o/oauth2/v2/auth",
+    `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}`,
+    `redirect_uri=${encodeURIComponent(redirectUri)}`,
+    "response_type=token",
+    `scope=${scopeParam}`,
+    "prompt=consent",
+    "include_granted_scopes=true"
+  ].join("&").replace("auth&", "auth?");
+
+  const redirectedTo = await browser.identity.launchWebAuthFlow({
+    url: authUrl,
+    interactive: true
   });
+
+  const token = parseTokenFromRedirect(redirectedTo);
+  if (!token) throw new Error("No access token returned");
+  return token;
+}
+
+function parseTokenFromRedirect(url) {
+  try {
+    const parsed = new URL(url);
+    const hash = new URLSearchParams(parsed.hash.replace(/^#/, ""));
+    return hash.get("access_token");
+  } catch (_e) {
+    return null;
+  }
 }
 
 async function sendToAppleHelper(reminder, listName = "Create Reminders") {
   if (!APPLE_AUTH_TOKEN || APPLE_AUTH_TOKEN === 'REPLACE_ON_BRIDGE_STARTUP') {
     APPLE_AUTH_TOKEN = await loadAuthToken();
     if (!APPLE_AUTH_TOKEN || APPLE_AUTH_TOKEN === 'REPLACE_ON_BRIDGE_STARTUP') {
-      throw new Error('Bridge not running. Start the Python bridge first: ./start-bridge.sh');
+      throw new Error('Bridge not running. Install and start the Apple bridge from the GitHub release.');
     }
   }
 
@@ -224,10 +238,9 @@ async function sendToAppleHelper(reminder, listName = "Create Reminders") {
 
   // If unauthorized, refresh token and retry once
   if (resp.status === 403) {
-    console.log('Auth failed, refreshing token...');
     APPLE_AUTH_TOKEN = await loadAuthToken();
     if (!APPLE_AUTH_TOKEN) {
-      throw new Error('Bridge not running. Start the Python bridge first.');
+      throw new Error('Bridge not running. Install and start the Apple bridge from the GitHub release.');
     }
     resp = await fetch(`http://localhost:${APPLE_HELPER_PORT}/reminder`, {
       method: "POST",

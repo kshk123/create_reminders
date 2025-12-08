@@ -108,35 +108,33 @@
           }
         }
         
-        // Handle day of week (next Monday, next Friday, etc.)
-        const dayMatch = dateStr.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
-        if (dayMatch) {
-          const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-          const targetDay = days.indexOf(dayMatch[1].toLowerCase());
-          const today = new Date();
-          const currentDay = today.getDay();
-          const daysUntilTarget = (targetDay - currentDay + 7) % 7 || 7; // Next occurrence
-          const nextDate = new Date();
-          nextDate.setDate(today.getDate() + daysUntilTarget);
-          nextDate.setHours(9, 0, 0, 0);
-          return nextDate;
-        }
+      // Handle day of week (next Monday, next Friday, etc.)
+      const dayMatch = dateStr.match(/next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
+      if (dayMatch) {
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const targetDay = days.indexOf(dayMatch[1].toLowerCase());
+        const today = new Date();
+        const currentDay = today.getDay();
+        const daysUntilTarget = (targetDay - currentDay + 7) % 7 || 7; // Next occurrence
+        const nextDate = new Date();
+        nextDate.setDate(today.getDate() + daysUntilTarget);
+        nextDate.setHours(9, 0, 0, 0);
+        return nextDate;
+      }
+      
+      // Handle "Month Day Year" with optional ordinals (e.g., "December 25th, 2026")
+      const monthDayYearMatch = dateStr.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i);
+      if (monthDayYearMatch) {
+        const monthName = monthDayYearMatch[1];
+        const day = parseInt(monthDayYearMatch[2]);
+        const year = parseInt(monthDayYearMatch[3]);
         
-        // Handle "Month Day Year" with optional ordinals (e.g., "December 25th, 2026")
-        const monthDayYearMatch = dateStr.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i);
-        if (monthDayYearMatch) {
-          const monthName = monthDayYearMatch[1];
-          const day = parseInt(monthDayYearMatch[2]);
-          const year = parseInt(monthDayYearMatch[3]);
-          
-          const parsed = new Date(`${monthName} ${day}, ${year}`);
-          if (!isNaN(parsed.getTime())) {
-            parsed.setHours(9, 0, 0, 0);
-            return parsed;
-          }
+        const parsed = new Date(`${monthName} ${day}, ${year}`);
+        if (!isNaN(parsed.getTime())) {
+          parsed.setHours(9, 0, 0, 0);
+          return parsed;
         }
-
-        // Handle "Month Day" format WITHOUT year (e.g., "December 18th", "Dec 25")
+      }        // Handle "Month Day" format WITHOUT year (e.g., "December 18th", "Dec 25")
         // This pattern should only match if there's NO year in the matched text
         const monthDayMatch = dateStr.match(/^((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?$/i);
         if (monthDayMatch) {
