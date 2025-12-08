@@ -14,7 +14,7 @@
     "http://localhost:19092/*"
   ],
   "oauth2": {
-    "client_id": "YOUR_ACTUAL_CLIENT_ID_HERE.apps.googleusercontent.com",
+    "client_id": "1096127465770-qgsn0vd5o0qtrv4fp1o502rg73gg2uh4.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/calendar.events"
     ]
@@ -23,7 +23,7 @@
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "background": {
-    "service_worker": "background.chrome.js"
+    "service_worker": "background.js"
   },
   "action": {
     "default_title": "Reminders",

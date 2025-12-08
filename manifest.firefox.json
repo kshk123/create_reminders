@@ -1,0 +1,35 @@
+{
+  "manifest_version": 2,
+  "name": "Create Reminders",
+  "description": "Save reminder dates from selected text and review them later in a popup.",
+  "version": "0.1.0",
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab",
+    "identity",
+    "tabs",
+    "http://localhost:19092/*",
+    "https://www.googleapis.com/*"
+  ],
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg",
+    "128": "icons/icon-128.png"
+  },
+  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "background": {
+    "scripts": ["background.firefox.js"]
+  },
+  "browser_action": {
+    "default_title": "Reminders",
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": ["capture-dialog.js"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "create-reminders@kshk123.github.io",
+      "strict_min_version": "102.0"
+    }
+  }
+}

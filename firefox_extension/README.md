@@ -1,6 +1,6 @@
 # 📝 Create Reminders
 
-> A Chrome extension to capture reminders from any webpage and sync them to Google Calendar or Apple Reminders.
+> A Chrome/Firefox extension to capture reminders from any webpage and sync them to Google Calendar or Apple Reminders.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Reminders-black?logo=apple)](https://www.apple.com/reminders/)
@@ -29,8 +29,7 @@ The setup guide includes:
 
 ### Browser targets
 - **Chrome**: use `manifest.chrome.json` + `background.chrome.js` (default files are equivalent).
-- **Firefox**: use `manifest.firefox.json` + `background.firefox.js` (promise-based APIs and `launchWebAuthFlow`).
-  - Copy/rename the appropriate manifest/background before loading the extension, or create a packed zip with those files renamed to `manifest.json` and `background.js`.
+- **Firefox** (AMO upload): use `firefox_extension/manifest.json` + `firefox_extension/background.js` with only the extension assets (HTML/CSS/JS/icons). The Apple bridge is **not bundled** in the AMO zip; ship it separately from a GitHub release.
 
 ### Installation
 
@@ -65,22 +64,9 @@ Requires one-time OAuth setup. See [Google Calendar Setup](SETUP.md#full-setup-w
 
 #### Apple Reminders (macOS only)
 
-**Option 1: Auto-start (Recommended)**
-Install the bridge to start automatically on login:
-```bash
-./install-launchagent.sh install
-```
-Once installed, the bridge runs in the background and is always available. The extension shows a status indicator (🟢/🔴) in the popup.
-
-**Option 2: Manual start**
-Run the bridge only when needed:
-```bash
-./start-bridge.sh
-```
-
-**No manual token copy needed!** The bridge automatically saves the auth token to `bridge_config.json`, and the extension reads it from there.
-
-See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) and [Auto-Start Guide](BRIDGE_AUTOSTART.md) for details.
+- Download the Apple bridge from the GitHub release/download bundle (kept separate from the AMO add-on). The bundle contains `apple_reminders_bridge.py`, `install-launchagent.sh`, and the launchd plist.
+- Run the bridge (`./start-bridge.sh` or install the launch agent) before sending to Apple Reminders. The extension reads the auth token directly from the running bridge at `http://localhost:19092/token`; no token file ships inside the add-on.
+- The AMO package must not contain the bridge or any auth token; only include the extension files under `firefox_extension/`.
 
 ## 📋 Usage
 
@@ -124,4 +110,3 @@ Click "Run All Tests" to execute the test suite. All tests should pass.
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
