@@ -272,29 +272,15 @@
   const preview = selectedText.length > 150 ? selectedText.substring(0, 150) + '...' : selectedText;
 
   // Calculate time difference for display
-  let reminderInfo = '';
+  let timeDiffText = '';
+  let showReminderInfo = false;
   if (detectedDate && reminderDate) {
     const hoursDiff = Math.round((detectedDate - reminderDate) / (1000 * 60 * 60));
     const minutesDiff = Math.round((detectedDate - reminderDate) / (1000 * 60));
     
-    // Validate that reminder is before the event
-    if (reminderDate > detectedDate) {
-      // This shouldn't happen, but if it does, just show the detected date
-      reminderInfo = `
-      <div style="background: #dbeafe; border-left: 3px solid #2563eb; padding: 10px 12px; margin-bottom: 12px; border-radius: 4px;">
-        <div style="font-size: 12px; color: #1e40af; font-weight: 500;">
-          📅 Event detected: ${detectedDate.toLocaleString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-          })}
-        </div>
-      </div>
-      `;
-    } else {
-      let timeDiffText = '';
+    // Only show reminder info if reminder is before the event
+    if (reminderDate <= detectedDate) {
+      showReminderInfo = true;
       if (hoursDiff >= 24) {
         timeDiffText = `${Math.floor(hoursDiff / 24)} day${hoursDiff >= 48 ? 's' : ''} before`;
       } else if (hoursDiff > 0) {
@@ -304,75 +290,64 @@
       } else {
         timeDiffText = 'now';
       }
-      
-      reminderInfo = `
-      <div style="background: #dbeafe; border-left: 3px solid #2563eb; padding: 10px 12px; margin-bottom: 12px; border-radius: 4px;">
-        <div style="font-size: 12px; color: #1e40af; font-weight: 500; margin-bottom: 4px;">
-          📅 Event detected: ${detectedDate.toLocaleString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-          })}
-        </div>
-        <div style="font-size: 12px; color: #1e40af;">
-          ⏰ Reminder set: ${timeDiffText}
-        </div>
-      </div>
-      `;
     }
   }
 
-  dialog.innerHTML = `
-    <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1f2937;">
-      📝 Add to Reminders
-    </h3>
-    <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 16px; color: #374151; font-size: 14px; line-height: 1.5; max-height: 100px; overflow-y: auto;">
-      "${preview}"
-    </div>
-    ${reminderInfo}
-    <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #374151;">
-      Reminder Date & Time (optional):
-    </label>
-    <input type="datetime-local" id="reminderDueDate" style="
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 14px;
-      margin-bottom: 20px;
-      box-sizing: border-box;
-    ">
-    <div style="display: flex; gap: 12px; justify-content: flex-end;">
-      <button id="cancelBtn" style="
-        padding: 10px 20px;
-        border: 1px solid #d1d5db;
-        background: #f3f4f6;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        color: #374151;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">Cancel</button>
-      <button id="saveBtn" style="
-        padding: 10px 20px;
-        border: none;
-        background: #2563eb;
-        color: white;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">Save Reminder</button>
-    </div>
-  `;
+  // Build dialog content safely using DOM methods to avoid innerHTML security warnings
+  const h3 = document.createElement('h3');
+  h3.style.cssText = 'margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1f2937;';
+  h3.textContent = '📝 Add to Reminders';
+  dialog.appendChild(h3);
+
+  const previewDiv = document.createElement('div');
+  previewDiv.style.cssText = 'background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 16px; color: #374151; font-size: 14px; line-height: 1.5; max-height: 100px; overflow-y: auto;';
+  previewDiv.textContent = `"${preview}"`;
+  dialog.appendChild(previewDiv);
+
+  if (showReminderInfo) {
+    const reminderInfoDiv = document.createElement('div');
+    reminderInfoDiv.style.cssText = 'background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px; border-radius: 6px; margin-bottom: 16px; color: #065f46; font-size: 13px;';
+    
+    const strongEl = document.createElement('strong');
+    strongEl.textContent = '📅 Detected: ';
+    reminderInfoDiv.appendChild(strongEl);
+    reminderInfoDiv.appendChild(document.createTextNode(reminderDate.toLocaleString()));
+    
+    const timeDiffDiv = document.createElement('div');
+    timeDiffDiv.style.cssText = 'margin-top: 4px; font-size: 12px; color: #047857;';
+    timeDiffDiv.textContent = `⏰ Reminder set: ${timeDiffText}`;
+    reminderInfoDiv.appendChild(timeDiffDiv);
+    
+    dialog.appendChild(reminderInfoDiv);
+  }
+
+  const label = document.createElement('label');
+  label.style.cssText = 'display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #374151;';
+  label.textContent = 'Reminder Date & Time (optional):';
+  dialog.appendChild(label);
+
+  const dateInput = document.createElement('input');
+  dateInput.type = 'datetime-local';
+  dateInput.id = 'reminderDueDate';
+  dateInput.style.cssText = 'width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; margin-bottom: 20px; box-sizing: border-box;';
+  dialog.appendChild(dateInput);
+
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.cssText = 'display: flex; gap: 12px; justify-content: flex-end;';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.id = 'cancelBtn';
+  cancelBtn.style.cssText = 'padding: 10px 20px; border: 1px solid #d1d5db; background: #f3f4f6; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; color: #374151; display: flex; align-items: center; justify-content: center;';
+  cancelBtn.textContent = 'Cancel';
+  buttonContainer.appendChild(cancelBtn);
+
+  const saveBtn = document.createElement('button');
+  saveBtn.id = 'saveBtn';
+  saveBtn.style.cssText = 'padding: 10px 20px; border: none; background: #2563eb; color: white; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center;';
+  saveBtn.textContent = 'Save Reminder';
+  buttonContainer.appendChild(saveBtn);
+
+  dialog.appendChild(buttonContainer);
 
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
