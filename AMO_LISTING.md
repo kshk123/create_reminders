@@ -42,10 +42,7 @@ Select any text containing a date, right-click, and instantly create a reminder.
 
 ### Apple Reminders Setup (macOS only)
 
-To use Apple Reminders integration, run the included Python bridge:
-```
-./start-bridge.sh
-```
+Apple Reminders requires a separate local bridge. Download [`apple-reminders-bridge.zip`](https://github.com/kshk123/create_reminders/releases/latest/download/apple-reminders-bridge.zip) from GitHub Releases, extract, and run `./start-bridge.sh` (or install the launch agent for auto-start). The add-on connects to the running bridge on `http://localhost:19092`.
 
 ### Permissions Explained
 
