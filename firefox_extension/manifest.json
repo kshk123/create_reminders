@@ -33,9 +33,9 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "create-reminders@kshk123.github.io",
-      "strict_min_version": "102.0",
+      "strict_min_version": "140.0",
       "data_collection_permissions": {
-        "not_required": true
+        "required": ["none"]
       }
     }
   }
