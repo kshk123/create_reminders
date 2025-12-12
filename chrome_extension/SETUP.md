@@ -132,46 +132,25 @@ To enable the "Send to Google Calendar" feature, you need to set up Google OAuth
 
 ## Apple Reminders Integration (macOS only)
 
-This feature requires a local Python bridge to communicate with Apple Reminders.
+This feature requires a local Python bridge (distributed separately from the Web Store add-on) to communicate with Apple Reminders.
 
 ### Prerequisites
 
 - **macOS** (this feature doesn't work on Windows/Linux)
 - **Python 3** (check by running `python3 --version` in Terminal)
 
-### Step 1: Start the Bridge
+### Step 1: Download and start the bridge
 
-We've created a helper script to make this easy:
-
+1) Download the **Apple bridge bundle** from the GitHub release (`apple-reminders-bridge.zip`).  
+2) Start it locally:
 ```bash
-cd /Users/basu/CodeBase/apps/set_reminders
+cd /path/to/apple-bridge-bundle
 ./start-bridge.sh
 ```
 
-You should see:
-```
-=============================================================
-Apple Reminders Bridge - SECURITY NOTICE
-=============================================================
-Bridge running on: http://localhost:19092/reminder
-Auth Token: abc123xyz...
+You should see the bridge listening on `http://localhost:19092/reminder` and printing an auth token. The extension fetches the token directly from the running bridge at `http://localhost:19092/token`—no token file ships inside the add-on.
 
-SETUP:
-✓ Token automatically saved to bridge_config.json
-✓ Extension will auto-read the token - no manual copy needed!
-
-SECURITY:
-- Only run this bridge when needed
-- Stop the bridge when not in use (Ctrl+C)
-- Token changes each restart for security
-- Bridge only accepts connections from localhost
-```
-
-**That's it!** The extension will automatically read the token from `bridge_config.json`.
-
-**Note**: The token changes each time you restart the bridge for security. The extension will automatically reload it as needed.
-
-**Keep this terminal window open** while using the extension.
+**Keep this terminal window open** while using the extension, or install the launch agent from the bridge bundle to auto-start it on login.
 
 ### Step 2: Grant Permissions (First Time Only)
 
@@ -194,16 +173,13 @@ The first time you send a reminder to Apple Reminders:
 - ⚠️ **Deleting a reminder from the extension does NOT delete it from Apple Reminders**
   - You must manually delete reminders in the Reminders app
   - This is a limitation of the AppleScript API
-- 📝 The list name is "Create Reminders" (same as the extension name)
+- 📝 The default list name is "Create Reminders" (you can override per-send in the prompt)
 - 🔄 Editing a reminder in the extension doesn't update Apple Reminders
   - Send it again as a new reminder if needed
 
 ### Running the Bridge Automatically (Optional)
 
-If you want the bridge to start automatically when you log in:
-
-1. Create a LaunchAgent plist file (advanced - let me know if you need help with this)
-2. Or just run `./start-bridge.sh` whenever you need it
+The bridge bundle includes a launch agent plist and installer script. Use `./install-launchagent.sh install` from the bridge bundle to auto-start it on login, or run `./start-bridge.sh` manually when needed.
 
 ---
 

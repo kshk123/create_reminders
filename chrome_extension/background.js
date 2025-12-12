@@ -9,7 +9,7 @@ const MAX_REMINDER_NOTES_LENGTH = 2000; // Match bridge limit
 // Global variable to store the loaded auth token
 let APPLE_AUTH_TOKEN = null;
 
-// Load the auth token directly from the running bridge (preferred) or fallback to config file
+// Load the auth token directly from the running bridge (preferred)
 async function loadAuthToken() {
   // Try fetching from the bridge directly (always has the current token)
   try {
@@ -20,31 +20,19 @@ async function loadAuthToken() {
       return config.auth_token;
     }
   } catch (error) {
-    // Bridge not running, fall back to config file
+    // Bridge not running
   }
   
-  // Fallback: try the bundled config file
-  try {
-    const response = await fetch(chrome.runtime.getURL('bridge_config.json'));
-    if (!response.ok) {
-      console.warn('Bridge config file not found. Bridge may not be running.');
-      return null;
-    }
-    const config = await response.json();
-    return config.auth_token;
-  } catch (error) {
-    console.warn('Could not load auth token from bridge_config.json:', error);
-    return null;
-  }
+  return null;
 }
 
 // Initialize the auth token on startup
 (async () => {
   APPLE_AUTH_TOKEN = await loadAuthToken();
   if (APPLE_AUTH_TOKEN && APPLE_AUTH_TOKEN !== 'REPLACE_ON_BRIDGE_STARTUP') {
-    console.log('✓ Auth token loaded successfully from bridge_config.json');
+    console.log('✓ Auth token loaded successfully from running bridge');
   } else {
-    console.warn('⚠ No valid auth token found. Start the Python bridge to generate one.');
+    console.warn('⚠ No valid auth token found. Start the Apple bridge (download from GitHub releases) to generate one.');
   }
 })();
 
@@ -227,7 +215,7 @@ async function sendToAppleHelper(reminder, listName = "Create Reminders") {
     console.log('Auth failed, refreshing token...');
     APPLE_AUTH_TOKEN = await loadAuthToken();
     if (!APPLE_AUTH_TOKEN) {
-      throw new Error('Bridge not running. Start the Python bridge first.');
+      throw new Error('Bridge not running. Install and start the Apple bridge from the GitHub release.');
     }
     resp = await fetch(`http://localhost:${APPLE_HELPER_PORT}/reminder`, {
       method: "POST",
