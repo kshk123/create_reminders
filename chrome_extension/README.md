@@ -65,22 +65,11 @@ Requires one-time OAuth setup. See [Google Calendar Setup](SETUP.md#full-setup-w
 
 #### Apple Reminders (macOS only)
 
-**Option 1: Auto-start (Recommended)**
-Install the bridge to start automatically on login:
-```bash
-./install-launchagent.sh install
-```
-Once installed, the bridge runs in the background and is always available. The extension shows a status indicator (🟢/🔴) in the popup.
+Download the Apple bridge bundle from the GitHub release (`apple-reminders-bridge.zip`), then either:
+- **Auto-start (Recommended):** `./install-launchagent.sh install`
+- **Manual start:** `./start-bridge.sh`
 
-**Option 2: Manual start**
-Run the bridge only when needed:
-```bash
-./start-bridge.sh
-```
-
-**No manual token copy needed!** The bridge automatically saves the auth token to `bridge_config.json`, and the extension reads it from there.
-
-See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) and [Auto-Start Guide](BRIDGE_AUTOSTART.md) for details.
+The bridge must be running on `http://localhost:19092`; the extension reads the auth token directly from the running bridge (no token file ships with the add-on). See [Apple Reminders Setup](SETUP.md#apple-reminders-integration-macos-only) for details.
 
 ## 📋 Usage
 
@@ -124,4 +113,3 @@ Click "Run All Tests" to execute the test suite. All tests should pass.
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-

@@ -3,6 +3,12 @@
   "name": "Create Reminders",
   "description": "Save reminder dates from selected text and review them later in a popup.",
   "version": "0.1.0",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": [
     "storage",
     "contextMenus",
@@ -11,7 +17,8 @@
     "scripting"
   ],
   "host_permissions": [
-    "http://localhost:19092/*"
+    "http://localhost:19092/*",
+    "https://www.googleapis.com/*"
   ],
   "oauth2": {
     "client_id": "1096127465770-qgsn0vd5o0qtrv4fp1o502rg73gg2uh4.apps.googleusercontent.com",
@@ -27,11 +34,16 @@
   },
   "action": {
     "default_title": "Reminders",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    }
   },
   "web_accessible_resources": [
     {
-      "resources": ["capture-dialog.js", "bridge_config.json"],
+      "resources": ["capture-dialog.js"],
       "matches": ["<all_urls>"]
     }
   ]
