@@ -24,6 +24,7 @@ ENV/
 *.crx
 *.zip
 
+
 # Logs
 *.log
 npm-debug.log*

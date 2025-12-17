@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Create Reminders",
   "description": "Save reminder dates from selected text and review them later in a popup.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -21,7 +21,7 @@
     "https://www.googleapis.com/*"
   ],
   "oauth2": {
-    "client_id": "1096127465770-qgsn0vd5o0qtrv4fp1o502rg73gg2uh4.apps.googleusercontent.com",
+    "client_id": "1096127465770-r3kiat8j3aumat4d33i80nkjo1179b28.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/calendar.events"
     ]
