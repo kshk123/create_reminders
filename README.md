@@ -1,6 +1,9 @@
 # 📝 Create Reminders
 
-> A Chrome extension to capture reminders from any webpage and sync them to Google Calendar or Apple Reminders.
+> A Chrome/Firefox extension to capture reminders from any webpage and sync them to Google Calendar or Apple Reminders.
+
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-1a73e8?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/create-reminders/ecifdofkbodefbieanakcmhnncjhflkh)
+[![Firefox Add-ons](https://img.shields.io/badge/Firefox%20Add--ons-Install-ff7139?logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/create-reminders/)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Reminders-black?logo=apple)](https://www.apple.com/reminders/)
