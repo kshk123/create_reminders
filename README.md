@@ -9,6 +9,13 @@
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Reminders-black?logo=apple)](https://www.apple.com/reminders/)
 [![Google Calendar](https://img.shields.io/badge/Google-Calendar-green?logo=google-calendar)](https://calendar.google.com/)
 
+<details>
+  <summary>🎥 Quick demo (right-click capture → reminder)</summary>
+  <video src="CreateReminderDemo.mp4" width="640" controls muted playsinline loop>
+    <a href="CreateReminderDemo.mp4">Watch the demo video</a>
+  </video>
+</details>
+
 
 ## ✨ Features
 
