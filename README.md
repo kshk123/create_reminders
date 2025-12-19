@@ -9,6 +9,8 @@
 [![macOS](https://img.shields.io/badge/macOS-Apple%20Reminders-black?logo=apple)](https://www.apple.com/reminders/)
 [![Google Calendar](https://img.shields.io/badge/Google-Calendar-green?logo=google-calendar)](https://calendar.google.com/)
 
+![Demo: right-click capture → reminder](assets/CreateReminderDemo.gif)
+
 
 ## ✨ Features
 
